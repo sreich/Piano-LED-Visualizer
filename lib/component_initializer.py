@@ -33,12 +33,10 @@ class ComponentInitializer:
             self.saving = saving_future.result()
         
         # Phase 2: Initialize components that depend on UserSettings in parallel
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            midiports_future = executor.submit(MidiPorts, self.usersettings)
+        with ThreadPoolExecutor(max_workers=1) as executor:
             ledsettings_future = executor.submit(LedSettings, self.usersettings)
-            
-            # Wait for phase 2 components
-            self.midiports = midiports_future.result()
+            # create MidiPorts on the main thread (see commit message)
+            self.midiports = MidiPorts(self.usersettings)
             self.ledsettings = ledsettings_future.result()
         
         # Phase 3: Initialize LedStrip (depends on LedSettings)
